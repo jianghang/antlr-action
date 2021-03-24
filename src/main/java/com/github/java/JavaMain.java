@@ -8,6 +8,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import java.util.UUID;
+
 public class JavaMain {
 
     public static void main(String[] args) {
@@ -39,5 +41,6 @@ public class JavaMain {
         InsertSerialIdListener insertSerialIdListener = new InsertSerialIdListener(commonTokenStream);
         walker.walk(insertSerialIdListener, parseTree);
         System.out.println(insertSerialIdListener.rewriter.getText());
+        System.out.println(UUID.randomUUID().toString().replaceAll("-", ""));
     }
 }
