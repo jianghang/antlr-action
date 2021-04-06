@@ -40,6 +40,8 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
 
     private boolean isNeedReplaceJaxb;
 
+    private boolean isNeedImportShareResponse;
+
     private String type;
 
     private Set<String> deleteImportPackageSet = Sets.newHashSet(
@@ -80,6 +82,10 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
         }
         if (isRestApi) {
             String str = "\n\nimport org.springframework.cloud.openfeign.FeignClient;";
+            rewriter.insertAfter(ctx.packageDeclaration().stop, str);
+        }
+        if (isNeedImportShareResponse) {
+            String str = "\nimport com.sunsharing.share.boot.framework.web.standard.entity.ShareResponse;";
             rewriter.insertAfter(ctx.packageDeclaration().stop, str);
         }
     }
@@ -133,9 +139,10 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
                 rewriter.delete(ctx.annotation().start, ctx.annotation().stop);
                 deleteImportLineBreak(ctx.annotation());
             } else if ("@RestApi".equals(annotation)) {
-                String feignClientStr = "@FeignClient(value = \"$clientServerName$\")";
+                String feignClientStr = "@FeignClient(value = \"$clientServerName$\", contextId = \"$className$\")";
                 ST st = new ST(feignClientStr, '$', '$');
                 st.add("clientServerName", clientServerName);
+                st.add("className", packageName + "." + className);
                 feignClientStr = st.render();
                 rewriter.replace(ctx.annotation().start, ctx.annotation().stop, feignClientStr);
                 this.isRestApi = true;
@@ -161,6 +168,15 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
     public void exitTypeDeclaration(JavaParser.TypeDeclarationContext ctx) {
         if (isHasLoggerAdapter) {
             rewriter.insertBefore(ctx.start, "@Slf4j\n");
+        }
+    }
+
+    @Override
+    public void enterClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
+        if (this.isHasController || this.isRestApi) {
+            ReplaceReturnStringVisitor replaceReturnStringVisitor = new ReplaceReturnStringVisitor(rewriter, type);
+            ctx.accept(replaceReturnStringVisitor);
+            this.isNeedImportShareResponse = this.isNeedImportShareResponse || replaceReturnStringVisitor.isReplaceReturnString;
         }
     }
 
