@@ -38,11 +38,11 @@ public class ReplaceReturnStringVisitor extends JavaParserBaseVisitor<Void> {
 
     @Override
     public Void visitTypeTypeOrVoid(JavaParser.TypeTypeOrVoidContext ctx) {
-        if (Objects.nonNull(ctx.typeType())) {
+        if (Objects.nonNull(ctx.typeType()) && Objects.nonNull(ctx.typeType().classOrInterfaceType())) {
             String returnTypeName = ctx.typeType().classOrInterfaceType().IDENTIFIER(0).getText();
             boolean isReturnString = "String".equals(returnTypeName);
             if (CLASS_TYPE.equals(this.type) && isReturnString
-                    && this.isHasResponseBodyAnnotation && this.isHasOverrideAnnotation) {
+                    && this.isHasOverrideAnnotation) {
                 String returnShareResponse = "ShareResponse<String>";
                 rewriter.replace(ctx.start, ctx.stop, returnShareResponse);
                 this.isReplaceReturnString = true;

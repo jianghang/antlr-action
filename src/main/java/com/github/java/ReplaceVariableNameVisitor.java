@@ -11,6 +11,7 @@ public class ReplaceVariableNameVisitor extends JavaParserBaseVisitor<Void> {
     private String sourceVarName;
     private String targetVarName;
     private TokenStreamRewriter rewriter;
+    private String shareResponseVarName;
 
     public ReplaceVariableNameVisitor(TokenStreamRewriter rewriter, String sourceVarName, String targetVarName) {
         this.rewriter = rewriter;
