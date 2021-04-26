@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,21 +41,181 @@ public class ConvertAnnotationMain {
             "WebConfiguration.java",
             "WebMvcConfiguration.java",
             "LogWriteDatabaseTypeCondition.java",
-            "LogReadDatabaseTypeCondition.java");
+            "LogReadDatabaseTypeCondition.java",
+            "SqlInjectionAspect.java",
+            "ScurdConfiguration.java",
+            "ExtensionCasAuthenticationEntryPoint.java",
+            "MyRedirectStrategy.java",
+            "WebSecurityConfiguration.java",
+            "SystemConstant.java",
+            "CorsFilter.java",
+            "CasConfig.java",
+            "HttpSessionConfigListener.java",
+            "MyCasAuthenticationEntryPoint.java");
     private static final Set<String> excludeFilePath = Sets.newHashSet(
             "com\\sunsharing\\xshare\\management\\log\\exception\\ExceptionResolver.java"
+            , "com\\sunsharing\\xshare\\management\\server\\dao\\search\\ResourceMapper.xml"
+            , "com\\sunsharing\\xshare\\management\\server\\service\\catalog\\CatalogScheduledService.java"
+            , "com\\sunsharing\\xshare\\management\\server\\service\\statistics\\DataSurveyScheduledService.java"
     );
 
     public static void main(String[] args) throws IOException {
         String sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-common\\src\\main\\java";
         String targetFolder = "F:\\GithubProject\\xshare-management-boot\\xshare-management-common\\src\\main\\java";
+//        scanInterfaceReturnStringMethod();
+        scanAllInterfaceReturnStringMethod();
 //        testConvertApiAnnotation();
 //        testConvertClassAnnotation();
 //        testPrintImport(sourceFolder, "com.sunsharing.xshare.framework.web.mvc.response.ShareResponseObject");
-        startMigrage();
+        startMigrate();
     }
 
-    private static void startMigrage() throws IOException {
+    private static void scanAllInterfaceReturnStringMethod() throws IOException {
+        Set<String> allPath = Sets.newHashSet(
+                "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-common\\src\\main\\java",
+                "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-api\\src\\main\\java",
+                "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-log-api\\src\\main\\java",
+                "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-api-log\\src\\main\\java");
+        List<Path> sourcePathList = Lists.newArrayList();
+        for (String path : allPath) {
+            getAllFile(Paths.get(path), sourcePathList);
+        }
+        for (Path path : sourcePathList) {
+            if (path.toString().contains(".java")) {
+                System.out.println("scan-path: " + path.toString());
+                CommonTokenStream commonTokenStream = getTokenStreamFromFile(path.toString());
+                JavaParser javaParser = new JavaParser(commonTokenStream);
+                ParseTree parseTree = javaParser.compilationUnit();
+
+                ParseTreeWalker walker = new ParseTreeWalker();
+                GetInterfaceReturnStrMethodListener getInterfaceReturnStrMethodListener = new GetInterfaceReturnStrMethodListener();
+                walker.walk(getInterfaceReturnStrMethodListener, parseTree);
+                if (getInterfaceReturnStrMethodListener.methodSet.size() > 0) {
+                    CommonConstant.methodMap.put(getInterfaceReturnStrMethodListener.className, getInterfaceReturnStrMethodListener.methodSet);
+                }
+            }
+        }
+        for (Map.Entry<String, Set<String>> entry : CommonConstant.methodMap.entrySet()) {
+            System.out.println(entry.getKey() + ":" + entry.getValue());
+        }
+    }
+
+    private static void scanInterfaceReturnStringMethod() {
+        String code = "/*\n" +
+                " * @(#) RegisterDatabaseApi\n" +
+                " * 版权声明 厦门畅享信息技术有限公司, 版权所有 违者必究\n" +
+                " *\n" +
+                " * <br> Copyright:  Copyright (c) 2018\n" +
+                " * <br> Company:厦门畅享信息技术有限公司\n" +
+                " * <br> @author Administrator\n" +
+                " * <br> 2018-11-05 16:44:57\n" +
+                " */\n" +
+                "\n" +
+                "package com.sunsharing.xshare.management.api.database;\n" +
+                "\n" +
+                "import com.sunsharing.xshare.framework.web.rest.RestApi;\n" +
+                "import com.sunsharing.xshare.management.api.database.request.TableNameRequest;\n" +
+                "import com.sunsharing.xshare.management.api.database.view.ApplyDatabaseTestView;\n" +
+                "import com.sunsharing.xshare.management.api.database.view.ApplyTestView;\n" +
+                "import com.sunsharing.xshare.management.api.database.view.DatabaseDataView;\n" +
+                "import com.sunsharing.xshare.management.api.database.view.DatabaseTestResultView;\n" +
+                "import com.sunsharing.xshare.management.api.database.view.MetadataView;\n" +
+                "import com.sunsharing.xshare.management.api.database.view.RegisterTestView;\n" +
+                "import com.sunsharing.xshare.management.api.database.view.TableNameView;\n" +
+                "import com.sunsharing.xshare.management.api.filex.view.MessageResponseView;\n" +
+                "import com.sunsharing.xshare.management.api.filex.view.TestProcessView;\n" +
+                "import com.sunsharing.xshare.management.api.resource.register.request.DatabaseRequest;\n" +
+                "import com.sunsharing.xshare.management.api.resource.register.request.ResourceRequest;\n" +
+                "import com.sunsharing.xshare.management.api.resource.register.view.ResourceDetailView;\n" +
+                "\n" +
+                "import org.springframework.web.bind.annotation.PathVariable;\n" +
+                "import org.springframework.web.bind.annotation.RequestBody;\n" +
+                "import org.springframework.web.bind.annotation.RequestMapping;\n" +
+                "import org.springframework.web.bind.annotation.RequestMethod;\n" +
+                "import org.springframework.web.bind.annotation.RequestParam;\n" +
+                "import org.springframework.web.bind.annotation.ResponseBody;\n" +
+                "\n" +
+                "import java.util.List;\n" +
+                "\n" +
+                "/**\n" +
+                " * Created by cyc on 2018/11/5.\n" +
+                " */\n" +
+                "@RestApi\n" +
+                "public interface RegisterDatabaseApi {\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/database/table/name/all/list\", method = RequestMethod.POST)\n" +
+                "    TableNameView queryDatabaseTable(@RequestBody TableNameRequest tableNameRequest);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/database/table/column\", method = RequestMethod.GET)\n" +
+                "    List<MetadataView> queryDatabaseMetadata(@RequestParam(\"accessPointId\") String nodeId, @RequestParam(\"dataSourceId\") String\n" +
+                "        dataSourceId, @RequestParam(\"tableName\") String tableName, @RequestParam(required = false, name = \"resourceId\") String resourceId);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/database/register/test/view/{resourceId}\", method = RequestMethod.GET)\n" +
+                "    RegisterTestView getDatabaseRegisterTestView(@PathVariable(\"resourceId\") String resourceId);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/database/test/view/{resourceId}/{userId}\", method = RequestMethod.GET)\n" +
+                "    DatabaseTestResultView databaseRegisterTest(@PathVariable(\"resourceId\") String resourceId, @PathVariable(\"userId\") String userId);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/database/apply/test/{resourceId}/{userId}\", method = RequestMethod.GET)\n" +
+                "    ApplyDatabaseTestView databaseApplyTest(@PathVariable(\"resourceId\") String resourceId, @RequestParam(name = \"applyId\", required = false)\n" +
+                "        String applyId, @PathVariable(\"userId\") String userId);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/database/apply/test/view/{resourceId}\", method = RequestMethod.GET)\n" +
+                "    ApplyTestView getDatabaseApplyTestView(@PathVariable(\"resourceId\") String resourceId, @RequestParam(name = \"applyId\", required = false)\n" +
+                "        String applyId);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/database/table/data/{resourceId}\", method = RequestMethod.GET)\n" +
+                "    DatabaseDataView queryTableDate(@PathVariable(\"resourceId\") String resourceId);\n" +
+                "\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/resource/add\", method = RequestMethod.POST)\n" +
+                "    String addResource(@RequestBody ResourceRequest<DatabaseRequest> request);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/resource/add/cache\", method = RequestMethod.POST)\n" +
+                "    MessageResponseView addResourceCache(@RequestBody ResourceRequest<DatabaseRequest> request);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/resource/edit\", method = RequestMethod.POST)\n" +
+                "    String updateResource(@RequestBody ResourceRequest<DatabaseRequest> request);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/resource/edit/cache\", method = RequestMethod.POST)\n" +
+                "    MessageResponseView updateResourceCache(@RequestBody ResourceRequest<DatabaseRequest> request);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/resource/delete\", method = RequestMethod.POST)\n" +
+                "    String deleteResource(@RequestBody List<String> resourceId);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/resource/view/{resourceId}\", method = RequestMethod.GET)\n" +
+                "    ResourceDetailView getResource(@PathVariable(\"resourceId\") String resourceId);\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/database/last/task/log\", method = RequestMethod.GET)\n" +
+                "    List<TestProcessView> getLastTaskLog(@RequestParam(name = \"applyId\") String applyId);\n" +
+                "}\n";
+        CommonTokenStream commonTokenStream = getTokenStream(code);
+        JavaParser javaParser = new JavaParser(commonTokenStream);
+        ParseTree parseTree = javaParser.compilationUnit();
+
+        ParseTreeWalker walker = new ParseTreeWalker();
+        GetInterfaceReturnStrMethodListener getInterfaceReturnStrMethodListener = new GetInterfaceReturnStrMethodListener();
+        walker.walk(getInterfaceReturnStrMethodListener, parseTree);
+        System.out.println(getInterfaceReturnStrMethodListener.className);
+        System.out.println(getInterfaceReturnStrMethodListener.methodSet);
+        CommonConstant.methodMap.put(getInterfaceReturnStrMethodListener.className, getInterfaceReturnStrMethodListener.methodSet);
+    }
+
+    private static void startMigrate() throws IOException {
         //迁移xshare-management-common模块
         String sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-common\\src\\main\\java";
         String targetFolder = "F:\\GithubProject\\xshare-management-boot\\xshare-management-common\\src\\main\\java";
@@ -148,7 +309,12 @@ public class ConvertAnnotationMain {
         //迁移xshare-management-server
         sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-server\\src\\main\\java";
         targetFolder = "F:\\GithubProject\\xshare-management-boot\\xshare-management-server\\src\\main\\java";
-        testCodeMigrate(sourceFolder, targetFolder, "xshare-management-server");
+//        testCodeMigrate(sourceFolder, targetFolder, "xshare-management-server");
+
+        //迁移xshare-management-platform
+        sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-platform\\src\\main\\java";
+        targetFolder = "F:\\GithubProject\\xshare-management-boot\\xshare-management-platform\\src\\main\\java";
+        testCodeMigrate(sourceFolder, targetFolder, "");
     }
 
     private static void testCodeMigrate(String sourceFolder, String targetFolder, String clientServerName) throws IOException {
@@ -190,73 +356,121 @@ public class ConvertAnnotationMain {
     }
 
     private static void testConvertClassAnnotation() {
-        String code = "/*\n" +
-                " * @(#) DataSourceRequest\n" +
-                " * 版权声明 厦门畅享信息技术有限公司, 版权所有 违者必究\n" +
-                " *\n" +
-                " * <br> Copyright:  Copyright (c) 2018\n" +
-                " * <br> Company:厦门畅享信息技术有限公司\n" +
-                " * <br> @author Administrator\n" +
-                " * <br> 2018-11-05 17:09:00\n" +
-                " */\n" +
+        String code = "package com.sunsharing.xshare.management.platform.filex;\n" +
                 "\n" +
-                "package com.sunsharing.xshare.management.api.component.request;\n" +
+                "import com.sunsharing.xshare.framework.core.collection.CollectionUtils;\n" +
+                "import com.sunsharing.xshare.framework.core.converter.BeanUtils;\n" +
+                "import com.sunsharing.xshare.framework.core.exception.BusinessException;\n" +
+                "import com.sunsharing.xshare.framework.core.log.LoggerAdapter;\n" +
+                "import com.sunsharing.xshare.framework.core.log.LoggerManager;\n" +
+                "import com.sunsharing.xshare.framework.core.message.MessageUtils;\n" +
+                "import com.sunsharing.xshare.management.api.filex.ApplyFilexApi;\n" +
+                "import com.sunsharing.xshare.management.api.filex.RegisterFilexApi;\n" +
+                "import com.sunsharing.xshare.management.api.filex.request.*;\n" +
+                "import com.sunsharing.xshare.management.api.filex.view.ApplyCountView;\n" +
+                "import com.sunsharing.xshare.management.api.filex.view.FileApplyCommonView;\n" +
+                "import com.sunsharing.xshare.management.api.filex.view.FileApplyDetailView;\n" +
+                "import com.sunsharing.xshare.management.api.filex.view.MessageResponseView;\n" +
+                "import com.sunsharing.xshare.management.api.sys.response.RoleView;\n" +
+                "import com.sunsharing.xshare.management.common.constant.RoleType;\n" +
+                "import com.sunsharing.xshare.management.common.constant.resource.ApplyType;\n" +
+                "import com.sunsharing.xshare.management.common.constant.resource.CancelType;\n" +
+                "import com.sunsharing.xshare.management.common.constant.resource.FieldType;\n" +
+                "import com.sunsharing.xshare.management.common.constant.resource.ResourceType;\n" +
+                "import com.sunsharing.xshare.management.common.exception.ApplyInfoCheckException;\n" +
+                "import com.sunsharing.xshare.management.common.message.request.PageRequest;\n" +
+                "import com.sunsharing.xshare.management.common.message.view.PageDataView;\n" +
+                "import com.sunsharing.xshare.management.platform.auth.UserInfo;\n" +
+                "import com.sunsharing.xshare.management.platform.auth.UserInfoService;\n" +
+                "import com.sunsharing.xshare.management.platform.common.service.ItextService;\n" +
+                "import com.sunsharing.xshare.management.platform.common.service.UploadService;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.converter.FilexApplyListResponseConverter;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.converter.FilexApplyRequestConverter;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.converter.FilexRegisterListRequestConverter;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.request.*;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.request.GreenChannelRequest;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.request.ResourceEvaluateRequest;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.service.CheckDataService;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.ApplyBacklogCount;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.ApplyCountFontView;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.ApplyEvaluateView;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.ApplyFormAddressView;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.FileApplyAllListView;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.FileApplyDetailFrontView;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.FileInUseListView;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.FilexApplyApproveListView;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.FilexApplyCheckpendListView;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.FilexApplyDisApproveListView;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.FilexApplyRevokeListView;\n" +
+                "import com.sunsharing.xshare.management.platform.filex.view.GreenChannelView;\n" +
                 "\n" +
-                "import com.sunsharing.xshare.management.api.component.view.DataSourceView;\n" +
+                "import org.springframework.http.ResponseEntity;\n" +
+                "import org.springframework.stereotype.Controller;\n" +
+                "import org.springframework.web.bind.annotation.PathVariable;\n" +
+                "import org.springframework.web.bind.annotation.RequestBody;\n" +
+                "import org.springframework.web.bind.annotation.RequestMapping;\n" +
+                "import org.springframework.web.bind.annotation.RequestMethod;\n" +
+                "import org.springframework.web.bind.annotation.RequestParam;\n" +
+                "import org.springframework.web.bind.annotation.ResponseBody;\n" +
                 "\n" +
-                "import javax.xml.bind.annotation.XmlAccessType;\n" +
-                "import javax.xml.bind.annotation.XmlAccessorType;\n" +
-                "import javax.xml.bind.annotation.XmlElement;\n" +
-                "import javax.xml.bind.annotation.XmlRootElement;\n" +
+                "import java.io.File;\n" +
+                "import java.io.IOException;\n" +
+                "import java.util.ArrayList;\n" +
+                "import java.util.Arrays;\n" +
+                "import java.util.List;\n" +
+                "import java.util.stream.Collectors;\n" +
                 "\n" +
-                "/**\n" +
-                " * Created by cyc on 2018/11/5.\n" +
-                " */\n" +
-                "@XmlRootElement(name = \"dataSourceRequest\")\n" +
-                "@XmlAccessorType(XmlAccessType.FIELD)\n" +
-                "public class DataSourceRequest extends DataSourceView {\n" +
-                "    @XmlElement(name = \"userId\")\n" +
-                "    private String userId;\n" +
+                "import javax.inject.Inject;\n" +
+                "import javax.validation.Valid;\n" +
                 "\n" +
-                "    @XmlElement(\"server\")\n" +
-                "    private String serverId;\n" +
-                "    \n" +
-                "    @XmlElementWrapper(name = \"serviceHeaderRequests\")\n" +
-                "    @XmlElement(name = \"serviceHeaderRequest\")\n" +
-                "    private List<ServiceHeaderRequest> serviceHeaderRequests;\n" +
-                "    \n" +
-                "    @XmlElement(name = \"beginTime\")\n" +
-                "    @XmlJavaTypeAdapter(Date8Adapter.class)\n" +
-                "    private Date beginTime;\n" +
-                "    \n" +
+                "@Controller\n" +
+                "public class ApplyFilexController {\n" +
+                "\n" +
+                "    private LoggerAdapter logger = LoggerManager.getLogger(getClass());\n" +
+                "\n" +
+                "    @Inject\n" +
+                "    private ApplyFilexApi applyFilexApi;\n" +
+                "\n" +
+                "    @Inject\n" +
+                "    private RegisterFilexApi filexRegisterApi;\n" +
+                "\n" +
+                "    @Inject\n" +
+                "    private FilexRegisterListRequestConverter registerListRequestConverter;\n" +
+                "\n" +
+                "    @Inject\n" +
+                "    private FilexApplyListResponseConverter filexApplyListResponseConverter;\n" +
+                "\n" +
+                "    @Inject\n" +
+                "    private FilexApplyRequestConverter filexApplyRequestConverter;\n" +
+                "\n" +
+                "    @Inject\n" +
+                "    private UserInfoService userInfoService;\n" +
+                "\n" +
+                "    @Inject\n" +
+                "    private CheckDataService checkDataService;\n" +
+                "    @Inject\n" +
+                "    private ItextService itextService;\n" +
+                "    @Inject\n" +
+                "    private UploadService uploadService;\n" +
+                "\n" +
                 "    /**\n" +
-                "     * 监控状态\n" +
+                "     * 取消重点标记\n" +
+                "     * @param applyId 申请id\n" +
+                "     * @return 描述\n" +
                 "     */\n" +
-                "    @XmlJavaTypeAdapter(MonitorStatusTypeAdapter.class)\n" +
-                "    @XmlElement(name = \"status\")\n" +
-                "    private MonitorStatusType status;\n" +
-                "\n" +
-                "    public String getUserId() {\n" +
-                "        return userId;\n" +
-                "    }\n" +
-                "\n" +
-                "    public void setUserId(String userId) {\n" +
-                "        this.userId = userId;\n" +
-                "    }\n" +
-                "\n" +
-                "    public String getServerId() {\n" +
-                "        return serverId;\n" +
-                "    }\n" +
-                "\n" +
-                "    public void setServerId(String serverId) {\n" +
-                "        String dataRecordTableName = getDataRecordTableName(schemeId);\n" +
-                "        this.serverId = serverId;\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/filex/green/channel/delete\", method = RequestMethod.GET)\n" +
+                "    public String deleteGreenChannel(@RequestParam String applyId) {\n" +
+                "        applyFilexApi.deleteGreenChannel(applyId, userInfoService.getCurrentUser().getId());\n" +
+                "        return \"取消重点标记成功\";\n" +
                 "    }\n" +
                 "    \n" +
-                "    public String getDataRecordTableName(String schemeId) {\n" +
-                "        return metadataService.getDataRecordTableName(schemeId);\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/resource/delete\", method = RequestMethod.POST)\n" +
+                "    public String deleteResource(@RequestBody List<String> resourceId) {\n" +
+                "        return registerDatabaseApi.deleteResource(resourceId);\n" +
                 "    }\n" +
-                "}\n";
+                "}";
         CommonTokenStream commonTokenStream = getTokenStream(code);
         CodeInfo codeInfo = convertClassAnnotation(commonTokenStream, "test-server");
         System.out.println(codeInfo.getCode());

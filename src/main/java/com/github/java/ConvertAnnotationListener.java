@@ -46,13 +46,13 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
 
     private boolean isNeedReplaceJaxb;
 
-    private boolean isNeedImportShareResponse;
-
     private boolean isNeedReplaceShareResponse;
 
     private boolean isNeedImportJsonProperty;
 
     private boolean isNeedReplaceJsonProperty;
+
+    private boolean isBooleanType;
 
     private String type;
 
@@ -92,6 +92,8 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
 
     private Set<String> needImportPackageSet = Sets.newHashSet();
 
+    private Map<String, String> classAliasMap = Maps.newHashMap();
+
     private static Map<String, String> adapterMap = Maps.newHashMap();
 
     private static Multimap<String, String> adapterImportPackageMap = ArrayListMultimap.create();
@@ -125,6 +127,8 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
                 "    @JsonDeserialize(using = InternetAccessRestrictionTypeDeserializer.class)");
         adapterMap.put("@XmlJavaTypeAdapter(TestTypeAdapter.class)", "@JsonSerialize(using = TestTypeSerializer.class)\n" +
                 "    @JsonDeserialize(using = TestTypeDeserializer.class)");
+        adapterMap.put("@XmlJavaTypeAdapter(InspectionTimeAdapter.class)", "@JsonSerialize(using = InspectionTimeSerializer.class)\n" +
+                "    @JsonDeserialize(using = InspectionTimeDeserializer.class)");
 
         adapterImportPackageMap.put("@XmlJavaTypeAdapter(Date8Adapter.class)", "\nimport com.fasterxml.jackson.annotation.JsonFormat;");
         adapterImportPackageMap.put("@XmlJavaTypeAdapter(Date8Adapter.class)", "\nimport com.sunsharing.xshare.management.common.adapter.DateFormatPattern;");
@@ -197,6 +201,11 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
         adapterImportPackageMap.put("@XmlJavaTypeAdapter(TestTypeAdapter.class)", "\nimport com.fasterxml.jackson.databind.annotation.JsonSerialize;");
         adapterImportPackageMap.put("@XmlJavaTypeAdapter(TestTypeAdapter.class)", "\nimport com.sunsharing.xshare.management.common.adapter.TestTypeDeserializer;");
         adapterImportPackageMap.put("@XmlJavaTypeAdapter(TestTypeAdapter.class)", "\nimport com.sunsharing.xshare.management.common.adapter.TestTypeSerializer;");
+
+        adapterImportPackageMap.put("@XmlJavaTypeAdapter(InspectionTimeAdapter.class)", "\nimport com.fasterxml.jackson.databind.annotation.JsonDeserialize;");
+        adapterImportPackageMap.put("@XmlJavaTypeAdapter(InspectionTimeAdapter.class)", "\nimport com.fasterxml.jackson.databind.annotation.JsonSerialize;");
+        adapterImportPackageMap.put("@XmlJavaTypeAdapter(InspectionTimeAdapter.class)", "\nimport com.sunsharing.xshare.management.common.adapter.InspectionTimeDeserializer;");
+        adapterImportPackageMap.put("@XmlJavaTypeAdapter(InspectionTimeAdapter.class)", "\nimport com.sunsharing.xshare.management.common.adapter.InspectionTimeSerializer;");
     }
 
     public ConvertAnnotationListener(BufferedTokenStream tokenStream) {
@@ -237,10 +246,6 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
             String str = "\n\nimport org.springframework.cloud.openfeign.FeignClient;";
             rewriter.insertAfter(ctx.packageDeclaration().stop, str);
         }
-        if (isNeedImportShareResponse) {
-            String str = "\n\nimport com.sunsharing.share.boot.framework.web.standard.entity.ShareResponse;";
-            rewriter.insertAfter(ctx.packageDeclaration().stop, str);
-        }
         if (isNeedImportJsonProperty) {
             String str = "\n\nimport com.fasterxml.jackson.annotation.JsonProperty;";
             rewriter.insertAfter(ctx.packageDeclaration().stop, str);
@@ -279,10 +284,10 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
                 this.isNeedReplaceJaxb = true;
             }
             if ("com.sunsharing.xshare.framework.web.mvc.response.ShareResponseObject".equals(qualifiedName)) {
-                this.isNeedReplaceShareResponse = true;
+//                this.isNeedReplaceShareResponse = true;
             }
             if ("com.sunsharing.xshare.management.common.message.response.ShareTestResponseObject".equals(qualifiedName)) {
-                this.isNeedReplaceShareResponse = true;
+//                this.isNeedReplaceShareResponse = true;
             }
             if ("javax.xml.bind.annotation.XmlElement".equals(qualifiedName)) {
                 this.isNeedReplaceJsonProperty = true;
@@ -297,6 +302,9 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
             }
             if ("com.sunsharing.xshare.management.log.ConfigService".equals(qualifiedName)) {
                 rewriter.replace(ctx.start, ctx.stop, "import com.sunsharing.xshare.management.log.config.ConfigService;");
+            }
+            if ("com.sunsharing.xshare.management.platform.SystemConstant".equals(qualifiedName)) {
+                rewriter.replace(ctx.start, ctx.stop, "com.sunsharing.xshare.management.platform.config.SystemConstant");
             }
         }
     }
@@ -322,9 +330,27 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
                     rewriter.replace(ctx.typeType().classOrInterfaceType().start,
                             ctx.typeType().classOrInterfaceType().stop,
                             "ShareResponse");
-                    this.isNeedImportShareResponse = true;
+                    needImportPackageSet.add("\nimport com.sunsharing.share.boot.framework.web.standard.entity.ShareResponse;");
                 }
             }
+        }
+    }
+
+    @Override
+    public void enterClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
+        if (this.isHasController) {
+            ReplaceReturnStringVisitor replaceReturnStringVisitor = new ReplaceReturnStringVisitor(rewriter, bufferedTokenStream, type,
+                    needImportPackageSet, this.classAliasMap);
+            ctx.accept(replaceReturnStringVisitor);
+//            this.isNeedImportShareResponse = this.isNeedImportShareResponse || replaceReturnStringVisitor.isReplaceReturnString;
+        }
+        if (this.isNeedReplaceJsonProperty) {
+            CheckDeclarationVisitor checkDeclarationVisitor = new CheckDeclarationVisitor();
+            ctx.accept(checkDeclarationVisitor);
+            this.isBooleanType = checkDeclarationVisitor.isBooleanType;
+            ReplaceXmlAnnotationVisitor replaceXmlAnnotationVisitor = new ReplaceXmlAnnotationVisitor(rewriter, bufferedTokenStream,
+                    checkDeclarationVisitor.isHasXmlWrapper);
+            ctx.accept(replaceXmlAnnotationVisitor);
         }
     }
 
@@ -373,11 +399,14 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
                 String javaTypeStr = ctx.annotation().getText();
                 javaTypeStr = StringUtils.deleteWhitespace(javaTypeStr);
                 javaTypeStr = javaTypeStr.replace("value=", "");
-                if (adapterMap.containsKey(javaTypeStr)) {
+                if (adapterMap.containsKey(javaTypeStr) && !this.isBooleanType) {
                     String value = adapterMap.get(javaTypeStr);
                     rewriter.replace(ctx.annotation().start, ctx.annotation().stop, value);
                     List<String> needImportPackageList = (List<String>) adapterImportPackageMap.get(javaTypeStr);
                     this.needImportPackageSet.addAll(needImportPackageList);
+                } else if (this.isBooleanType) {
+                    rewriter.delete(ctx.annotation().start, ctx.annotation().stop);
+                    deleteImportLineBreak(ctx.annotation());
                 } else {
                     throw new RuntimeException(javaTypeStr + "不存在，需要处理");
                 }
@@ -407,27 +436,12 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
     }
 
     @Override
-    public void enterClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
-        if (this.isHasController) {
-            ReplaceReturnStringVisitor replaceReturnStringVisitor = new ReplaceReturnStringVisitor(rewriter, type);
-            ctx.accept(replaceReturnStringVisitor);
-            this.isNeedImportShareResponse = this.isNeedImportShareResponse || replaceReturnStringVisitor.isReplaceReturnString;
-        }
-        if (this.isNeedReplaceJsonProperty) {
-            CheckXmlWrapperVisitor checkXmlWrapperVisitor = new CheckXmlWrapperVisitor();
-            ctx.accept(checkXmlWrapperVisitor);
-            ReplaceXmlAnnotationVisitor replaceXmlAnnotationVisitor = new ReplaceXmlAnnotationVisitor(rewriter, bufferedTokenStream,
-                    checkXmlWrapperVisitor.isHasXmlWrapper);
-            ctx.accept(replaceXmlAnnotationVisitor);
-        }
-    }
-
-    @Override
     public void enterInterfaceBody(JavaParser.InterfaceBodyContext ctx) {
         if (this.isRestApi) {
-            ReplaceReturnStringVisitor replaceReturnStringVisitor = new ReplaceReturnStringVisitor(rewriter, type);
+            ReplaceReturnStringVisitor replaceReturnStringVisitor = new ReplaceReturnStringVisitor(rewriter, bufferedTokenStream, type,
+                    needImportPackageSet, this.classAliasMap);
             ctx.accept(replaceReturnStringVisitor);
-            this.isNeedImportShareResponse = this.isNeedImportShareResponse || replaceReturnStringVisitor.isReplaceReturnString;
+//            this.isNeedImportShareResponse = this.isNeedImportShareResponse || replaceReturnStringVisitor.isReplaceReturnString;
         }
     }
 
@@ -440,6 +454,8 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
                 this.isHasLoggerAdapter = true;
                 rewriter.delete(ctx.getParent().getParent().start, ctx.getParent().getParent().stop);
             }
+            String varName = ctx.variableDeclarators().variableDeclarator(0).variableDeclaratorId().getText();
+            classAliasMap.put(varName, ctx.typeType().classOrInterfaceType().getText());
         }
     }
 
@@ -476,9 +492,34 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
 
     @Override
     public void enterExpression(JavaParser.ExpressionContext ctx) {
-        String expression = ctx.getText();
-        if ("metadataService.getDataRecordTableName(schemeId)".equals(expression)) {
-            rewriter.insertAfter(ctx.stop, ".getData()");
+        String getDataStr = ".getData()";
+        if (Objects.nonNull(ctx.expression()) && ctx.expression().size() > 0
+                && Objects.nonNull(ctx.expression(0).primary())) {
+            String varName = ctx.expression(0).primary().getText();
+            String className = this.classAliasMap.get(varName);
+            if (Objects.nonNull(ctx.methodCall()) && StringUtils.isNotBlank(className)) {
+                ParserRuleContext parserRuleContext = ctx.getParent();
+                do {
+                    parserRuleContext = parserRuleContext.getParent();
+                    if (Objects.isNull(parserRuleContext)) {
+                        break;
+                    }
+                } while (!(parserRuleContext instanceof JavaParser.MethodDeclarationContext));
+                if (Objects.nonNull(parserRuleContext)) {
+                    JavaParser.MethodDeclarationContext methodDeclarationContext = (JavaParser.MethodDeclarationContext) parserRuleContext;
+                    if (Objects.nonNull(methodDeclarationContext.typeTypeOrVoid().typeType())
+                            && Objects.nonNull(methodDeclarationContext.typeTypeOrVoid().typeType().classOrInterfaceType())) {
+                        String returnType = methodDeclarationContext.typeTypeOrVoid().typeType().classOrInterfaceType().getText();
+                        if ("String".equals(returnType)) {
+                            return;
+                        }
+                    }
+                }
+                String methodName = ctx.methodCall().IDENTIFIER().getText();
+                if (CommonConstant.methodMap.containsKey(className) && CommonConstant.methodMap.get(className).contains(methodName)) {
+                    rewriter.insertAfter(ctx.stop, getDataStr);
+                }
+            }
         }
     }
 
