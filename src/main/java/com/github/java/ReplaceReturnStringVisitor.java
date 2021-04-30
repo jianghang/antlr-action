@@ -79,10 +79,14 @@ public class ReplaceReturnStringVisitor extends JavaParserBaseVisitor<Void> {
         if (CLASS_TYPE.equals(this.type) && this.isReplaceReturnString) {
             boolean isNeedAutoSuccess = true;
             if (Objects.nonNull(ctx.RETURN())) {
-                if (Objects.nonNull(ctx.expression(0).expression()) && ctx.expression(0).expression().size() > 0) {
+                if (Objects.nonNull(ctx.expression(0).expression()) && ctx.expression(0).expression().size() > 0
+                        && Objects.nonNull(ctx.expression(0).expression(0).primary())
+                        && Objects.nonNull(ctx.expression(0).methodCall())) {
                     String varName = ctx.expression(0).expression(0).primary().getText();
+                    String methodName = ctx.expression(0).methodCall().IDENTIFIER().getText();
                     String className = this.classAliasMap.get(varName);
-                    if (Objects.nonNull(className) && !CommonConstant.methodMap.containsKey(className)) {
+                    if (Objects.nonNull(className) && CommonConstant.methodMap.containsKey(className)
+                            && CommonConstant.methodMap.get(className).contains(methodName)) {
                         isNeedAutoSuccess = false;
                     }
                 }

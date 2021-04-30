@@ -21,4 +21,14 @@ public class ParserUtils {
             }
         }
     }
+
+    public static <T> ParserRuleContext getParent(ParserRuleContext parserRuleContext,Class<T> cls) {
+        do {
+            parserRuleContext = parserRuleContext.getParent();
+            if(Objects.isNull(parserRuleContext)){
+                return null;
+            }
+        } while (!parserRuleContext.getClass().isAssignableFrom(cls));
+        return parserRuleContext;
+    }
 }

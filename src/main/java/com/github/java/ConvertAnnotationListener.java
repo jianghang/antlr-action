@@ -265,6 +265,10 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
     @Override
     public void enterPackageDeclaration(JavaParser.PackageDeclarationContext ctx) {
         packageName = ctx.qualifiedName().getText();
+        if (packageName.contains("xhsare")) {
+            String tempPackageName = packageName.replace("xhsare", "xshare");
+            rewriter.replace(ctx.qualifiedName().start, ctx.qualifiedName().stop, tempPackageName);
+        }
     }
 
     @Override
@@ -304,7 +308,11 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
                 rewriter.replace(ctx.start, ctx.stop, "import com.sunsharing.xshare.management.log.config.ConfigService;");
             }
             if ("com.sunsharing.xshare.management.platform.SystemConstant".equals(qualifiedName)) {
-                rewriter.replace(ctx.start, ctx.stop, "com.sunsharing.xshare.management.platform.config.SystemConstant");
+                rewriter.replace(ctx.start, ctx.stop, "import com.sunsharing.xshare.management.platform.config.SystemConstant;");
+            }
+            if (qualifiedName.contains("xhsare")) {
+                String packageName = qualifiedName.replace("xhsare", "xshare");
+                rewriter.replace(ctx.qualifiedName().start, ctx.qualifiedName().stop, packageName);
             }
         }
     }
@@ -483,6 +491,10 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
                 ctx.accept(replaceVariableNameVisitor);
             }
         }
+        if (this.isHasController) {
+            ReplaceObjectResponseVisitor replaceObjectResponseVisitor = new ReplaceObjectResponseVisitor(this.rewriter, this.needImportPackageSet);
+            ctx.accept(replaceObjectResponseVisitor);
+        }
 //        if (this.isNeedReplaceShareResponse) {
 //            ReplaceMethodCallVisitor replaceMethodCallVisitor = new ReplaceMethodCallVisitor(this.rewriter);
 //            ctx.accept(replaceMethodCallVisitor);
@@ -497,27 +509,51 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
                 && Objects.nonNull(ctx.expression(0).primary())) {
             String varName = ctx.expression(0).primary().getText();
             String className = this.classAliasMap.get(varName);
-            if (Objects.nonNull(ctx.methodCall()) && StringUtils.isNotBlank(className)) {
-                ParserRuleContext parserRuleContext = ctx.getParent();
-                do {
-                    parserRuleContext = parserRuleContext.getParent();
-                    if (Objects.isNull(parserRuleContext)) {
-                        break;
-                    }
-                } while (!(parserRuleContext instanceof JavaParser.MethodDeclarationContext));
-                if (Objects.nonNull(parserRuleContext)) {
-                    JavaParser.MethodDeclarationContext methodDeclarationContext = (JavaParser.MethodDeclarationContext) parserRuleContext;
-                    if (Objects.nonNull(methodDeclarationContext.typeTypeOrVoid().typeType())
-                            && Objects.nonNull(methodDeclarationContext.typeTypeOrVoid().typeType().classOrInterfaceType())) {
-                        String returnType = methodDeclarationContext.typeTypeOrVoid().typeType().classOrInterfaceType().getText();
-                        if ("String".equals(returnType)) {
-                            return;
+            ParserRuleContext ruleContext = ctx.getParent();
+            if (ruleContext instanceof JavaParser.StatementContext) {
+                JavaParser.StatementContext statementContext = (JavaParser.StatementContext) ruleContext;
+                if (Objects.nonNull(statementContext.RETURN())) {
+                    if (Objects.nonNull(ctx.methodCall()) && StringUtils.isNotBlank(className)) {
+                        ParserRuleContext parserRuleContext = ParserUtils.getParent(ctx, JavaParser.MethodDeclarationContext.class);
+                        if (Objects.nonNull(parserRuleContext)) {
+                            JavaParser.MethodDeclarationContext methodDeclarationContext = (JavaParser.MethodDeclarationContext) parserRuleContext;
+                            if (Objects.nonNull(methodDeclarationContext.typeTypeOrVoid().typeType())
+                                    && Objects.nonNull(methodDeclarationContext.typeTypeOrVoid().typeType().classOrInterfaceType())) {
+                                String returnType = methodDeclarationContext.typeTypeOrVoid().typeType().classOrInterfaceType().getText();
+                                if ("String".equals(returnType)) {
+                                    return;
+                                }
+                            }
+                        }
+                        String methodName = ctx.methodCall().IDENTIFIER().getText();
+                        if (CommonConstant.methodMap.containsKey(className) && CommonConstant.methodMap.get(className).contains(methodName)) {
+                            rewriter.insertAfter(ctx.stop, getDataStr);
                         }
                     }
                 }
-                String methodName = ctx.methodCall().IDENTIFIER().getText();
-                if (CommonConstant.methodMap.containsKey(className) && CommonConstant.methodMap.get(className).contains(methodName)) {
-                    rewriter.insertAfter(ctx.stop, getDataStr);
+            } else if (ruleContext instanceof JavaParser.VariableInitializerContext) {
+                if (Objects.nonNull(ctx.methodCall()) && StringUtils.isNotBlank(className)) {
+                    ParserRuleContext parserRuleContext = ParserUtils.getParent(ctx, JavaParser.LocalVariableDeclarationContext.class);
+                    if (Objects.nonNull(parserRuleContext)) {
+                        JavaParser.LocalVariableDeclarationContext localVariableDeclarationContext = (JavaParser.LocalVariableDeclarationContext) parserRuleContext;
+                        if (Objects.nonNull(localVariableDeclarationContext.typeType())
+                                && Objects.nonNull(localVariableDeclarationContext.typeType().classOrInterfaceType())) {
+                            String varType = localVariableDeclarationContext.typeType().classOrInterfaceType().getText();
+                            String methodName = ctx.methodCall().IDENTIFIER().getText();
+                            if ("String".equals(varType)
+                                    && CommonConstant.methodMap.containsKey(className)
+                                    && CommonConstant.methodMap.get(className).contains(methodName)) {
+                                rewriter.insertAfter(ctx.stop, getDataStr);
+                            }
+                        }
+                    }
+                }
+            } else if (ruleContext instanceof JavaParser.ExpressionListContext) {
+                if (Objects.nonNull(ctx.methodCall()) && StringUtils.isNotBlank(className)) {
+                    String methodName = ctx.methodCall().IDENTIFIER().getText();
+                    if (CommonConstant.methodMap.containsKey(className) && CommonConstant.methodMap.get(className).contains(methodName)) {
+                        rewriter.insertAfter(ctx.stop, getDataStr);
+                    }
                 }
             }
         }

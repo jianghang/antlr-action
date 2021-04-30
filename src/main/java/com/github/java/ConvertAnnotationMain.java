@@ -51,22 +51,33 @@ public class ConvertAnnotationMain {
             "CorsFilter.java",
             "CasConfig.java",
             "HttpSessionConfigListener.java",
-            "MyCasAuthenticationEntryPoint.java");
+            "MyCasAuthenticationEntryPoint.java",
+            "AuthController.java",
+            "HttpProxyServlet.java",
+            "SpringUtil.java");
     private static final Set<String> excludeFilePath = Sets.newHashSet(
             "com\\sunsharing\\xshare\\management\\log\\exception\\ExceptionResolver.java"
             , "com\\sunsharing\\xshare\\management\\server\\dao\\search\\ResourceMapper.xml"
             , "com\\sunsharing\\xshare\\management\\server\\service\\catalog\\CatalogScheduledService.java"
             , "com\\sunsharing\\xshare\\management\\server\\service\\statistics\\DataSurveyScheduledService.java"
+            , "com\\sunsharing\\xhsare\\management\\database\\utils\\SpringUtil.java"
+            , "com\\sunsharing\\xhsare\\management\\database\\config\\DataSourceConfig.java"
+            , "com\\sunsharing\\xhsare\\management\\database\\config\\DataSourcePropertiesConfig.java"
+            , "com\\sunsharing\\xhsare\\management\\database\\config\\DynamicDataSource.java"
+            , "com\\sunsharing\\xhsare\\management\\database\\config\\WebMvcConfiguration.java"
+            , "com\\sunsharing\\xhsare\\management\\database\\DatabaseApplication.java"
+            , "com\\sunsharing\\xhsare\\management\\database\\dao\\IDataBaseMapper.xml"
     );
 
     public static void main(String[] args) throws IOException {
-        String sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-common\\src\\main\\java";
+        String sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-log\\src\\main\\java";
         String targetFolder = "F:\\GithubProject\\xshare-management-boot\\xshare-management-common\\src\\main\\java";
 //        scanInterfaceReturnStringMethod();
         scanAllInterfaceReturnStringMethod();
 //        testConvertApiAnnotation();
 //        testConvertClassAnnotation();
 //        testPrintImport(sourceFolder, "com.sunsharing.xshare.framework.web.mvc.response.ShareResponseObject");
+//        testPrintAnnotation(sourceFolder, "Scheduled");
         startMigrate();
     }
 
@@ -269,7 +280,7 @@ public class ConvertAnnotationMain {
         //迁移xshare-management-api-aggregation
         sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-api-aggregation\\src\\main\\java";
         targetFolder = "F:\\GithubProject\\xshare-management-boot\\xshare-management-api-aggregation\\src\\main\\java";
-//        testCodeMigrate(sourceFolder, targetFolder, "xshare-aggregation-database", true);
+//        testCodeMigrate(sourceFolder, targetFolder, "xshare-aggregation-database");
 
         //迁移xshare-management-api-job
         sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-api-job\\src\\main\\java";
@@ -314,6 +325,26 @@ public class ConvertAnnotationMain {
         //迁移xshare-management-platform
         sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-platform\\src\\main\\java";
         targetFolder = "F:\\GithubProject\\xshare-management-boot\\xshare-management-platform\\src\\main\\java";
+//        testCodeMigrate(sourceFolder, targetFolder, "");
+
+        //迁移xshare-management-platform静态资源
+        sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-platform\\src\\main\\webapp";
+        targetFolder = "F:\\GithubProject\\xshare-management-boot\\xshare-management-platform\\src\\main\\resources\\static";
+//        testCodeMigrate(sourceFolder, targetFolder, "");
+
+        //迁移xshare-management-maintenance
+        sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-maintenance\\src\\main\\java";
+        targetFolder = "F:\\GithubProject\\xshare-management-boot\\xshare-management-maintenance\\src\\main\\java";
+//        testCodeMigrate(sourceFolder, targetFolder, "");
+
+        //迁移xshare-management-maintenance静态资源
+        sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-management-maintenance\\src\\main\\webapp";
+        targetFolder = "F:\\GithubProject\\xshare-management-boot\\xshare-management-maintenance\\src\\main\\resources\\static";
+//        testCodeMigrate(sourceFolder, targetFolder, "");
+
+        //迁移xshare-aggregation-database
+        sourceFolder = "F:\\SunSharing_SourceCode\\master-xshare-management\\xshare-management\\xshare-aggregation-database\\src\\main\\java";
+        targetFolder = "F:\\GithubProject\\xshare-management-boot\\xshare-aggregation-database\\src\\main\\java";
         testCodeMigrate(sourceFolder, targetFolder, "");
     }
 
@@ -336,6 +367,28 @@ public class ConvertAnnotationMain {
         sourcePathList.add(path);
     }
 
+    private static void testPrintAnnotation(String sourceFolder, String annotationName) throws IOException {
+        List<Path> sourcePathList = Lists.newArrayList();
+        getAllFile(Paths.get(sourceFolder), sourcePathList);
+        for (Path path : sourcePathList) {
+            String fileName = path.toString();
+            if (!fileName.contains(".java")) {
+                continue;
+            }
+            CommonTokenStream commonTokenStream = getTokenStreamFromFile(fileName);
+
+            JavaParser javaParser = new JavaParser(commonTokenStream);
+            ParseTree parseTree = javaParser.compilationUnit();
+
+            ParseTreeWalker walker = new ParseTreeWalker();
+            PrintAnnotationListener printAnnotationListener = new PrintAnnotationListener(annotationName);
+            walker.walk(printAnnotationListener, parseTree);
+            if (printAnnotationListener.isHasTargetAnnotation) {
+                System.out.println(printAnnotationListener.className + " : " + fileName);
+            }
+        }
+    }
+
     private static void testPrintImport(String sourceFolder, String packageName) throws IOException {
         List<Path> sourcePathList = Lists.newArrayList();
         getAllFile(Paths.get(sourceFolder), sourcePathList);
@@ -356,121 +409,105 @@ public class ConvertAnnotationMain {
     }
 
     private static void testConvertClassAnnotation() {
-        String code = "package com.sunsharing.xshare.management.platform.filex;\n" +
+        String code = "/*\n" +
+                " * @(#) DictItemController\n" +
+                " * 版权声明 厦门畅享信息技术有限公司, 版权所有 违者必究\n" +
+                " *\n" +
+                " * <br> Copyright:  Copyright (c) 2017\n" +
+                " * <br> Company:厦门畅享信息技术有限公司\n" +
+                " * <br> @author Administrator\n" +
+                " * <br> 2017-11-03 15:50:36\n" +
+                " */\n" +
                 "\n" +
-                "import com.sunsharing.xshare.framework.core.collection.CollectionUtils;\n" +
-                "import com.sunsharing.xshare.framework.core.converter.BeanUtils;\n" +
-                "import com.sunsharing.xshare.framework.core.exception.BusinessException;\n" +
-                "import com.sunsharing.xshare.framework.core.log.LoggerAdapter;\n" +
-                "import com.sunsharing.xshare.framework.core.log.LoggerManager;\n" +
-                "import com.sunsharing.xshare.framework.core.message.MessageUtils;\n" +
-                "import com.sunsharing.xshare.management.api.filex.ApplyFilexApi;\n" +
-                "import com.sunsharing.xshare.management.api.filex.RegisterFilexApi;\n" +
-                "import com.sunsharing.xshare.management.api.filex.request.*;\n" +
-                "import com.sunsharing.xshare.management.api.filex.view.ApplyCountView;\n" +
-                "import com.sunsharing.xshare.management.api.filex.view.FileApplyCommonView;\n" +
-                "import com.sunsharing.xshare.management.api.filex.view.FileApplyDetailView;\n" +
-                "import com.sunsharing.xshare.management.api.filex.view.MessageResponseView;\n" +
-                "import com.sunsharing.xshare.management.api.sys.response.RoleView;\n" +
-                "import com.sunsharing.xshare.management.common.constant.RoleType;\n" +
-                "import com.sunsharing.xshare.management.common.constant.resource.ApplyType;\n" +
-                "import com.sunsharing.xshare.management.common.constant.resource.CancelType;\n" +
-                "import com.sunsharing.xshare.management.common.constant.resource.FieldType;\n" +
-                "import com.sunsharing.xshare.management.common.constant.resource.ResourceType;\n" +
-                "import com.sunsharing.xshare.management.common.exception.ApplyInfoCheckException;\n" +
-                "import com.sunsharing.xshare.management.common.message.request.PageRequest;\n" +
+                "package com.sunsharing.xshare.management.platform.sys;\n" +
+                "\n" +
+                "import com.sunsharing.xshare.framework.web.mvc.request.RequestObject;\n" +
+                "import com.sunsharing.xshare.framework.web.mvc.response.Response;\n" +
+                "import com.sunsharing.xshare.framework.web.mvc.response.ResponseObject;\n" +
+                "import com.sunsharing.xshare.management.api.sys.DictItemApi;\n" +
+                "import com.sunsharing.xshare.management.api.sys.request.QueryDictItemRequestParams;\n" +
+                "import com.sunsharing.xshare.management.api.sys.response.PageView;\n" +
+                "import com.sunsharing.xshare.management.api.sys.response.QueryDictItemListResponseView;\n" +
+                "import com.sunsharing.xshare.management.common.message.response.ObjectResponse;\n" +
                 "import com.sunsharing.xshare.management.common.message.view.PageDataView;\n" +
-                "import com.sunsharing.xshare.management.platform.auth.UserInfo;\n" +
-                "import com.sunsharing.xshare.management.platform.auth.UserInfoService;\n" +
-                "import com.sunsharing.xshare.management.platform.common.service.ItextService;\n" +
-                "import com.sunsharing.xshare.management.platform.common.service.UploadService;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.converter.FilexApplyListResponseConverter;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.converter.FilexApplyRequestConverter;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.converter.FilexRegisterListRequestConverter;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.request.*;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.request.GreenChannelRequest;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.request.ResourceEvaluateRequest;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.service.CheckDataService;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.ApplyBacklogCount;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.ApplyCountFontView;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.ApplyEvaluateView;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.ApplyFormAddressView;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.FileApplyAllListView;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.FileApplyDetailFrontView;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.FileInUseListView;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.FilexApplyApproveListView;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.FilexApplyCheckpendListView;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.FilexApplyDisApproveListView;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.FilexApplyRevokeListView;\n" +
-                "import com.sunsharing.xshare.management.platform.filex.view.GreenChannelView;\n" +
+                "import com.sunsharing.xshare.management.platform.sys.converter.DictItemConverter;\n" +
+                "import com.sunsharing.xshare.management.platform.sys.request.AddDictItemRequest;\n" +
+                "import com.sunsharing.xshare.management.platform.sys.request.EditDictItemRequest;\n" +
+                "import com.sunsharing.xshare.management.platform.sys.view.DictItemView;\n" +
                 "\n" +
-                "import org.springframework.http.ResponseEntity;\n" +
                 "import org.springframework.stereotype.Controller;\n" +
                 "import org.springframework.web.bind.annotation.PathVariable;\n" +
                 "import org.springframework.web.bind.annotation.RequestBody;\n" +
                 "import org.springframework.web.bind.annotation.RequestMapping;\n" +
                 "import org.springframework.web.bind.annotation.RequestMethod;\n" +
-                "import org.springframework.web.bind.annotation.RequestParam;\n" +
                 "import org.springframework.web.bind.annotation.ResponseBody;\n" +
                 "\n" +
-                "import java.io.File;\n" +
-                "import java.io.IOException;\n" +
                 "import java.util.ArrayList;\n" +
-                "import java.util.Arrays;\n" +
                 "import java.util.List;\n" +
-                "import java.util.stream.Collectors;\n" +
                 "\n" +
                 "import javax.inject.Inject;\n" +
                 "import javax.validation.Valid;\n" +
                 "\n" +
+                "/**\n" +
+                " * Created by cyc on 2017/11/3.\n" +
+                " */\n" +
                 "@Controller\n" +
-                "public class ApplyFilexController {\n" +
-                "\n" +
-                "    private LoggerAdapter logger = LoggerManager.getLogger(getClass());\n" +
-                "\n" +
+                "public class DictItemController {\n" +
                 "    @Inject\n" +
-                "    private ApplyFilexApi applyFilexApi;\n" +
+                "    private DictItemApi dictItemApi;\n" +
                 "\n" +
-                "    @Inject\n" +
-                "    private RegisterFilexApi filexRegisterApi;\n" +
-                "\n" +
-                "    @Inject\n" +
-                "    private FilexRegisterListRequestConverter registerListRequestConverter;\n" +
-                "\n" +
-                "    @Inject\n" +
-                "    private FilexApplyListResponseConverter filexApplyListResponseConverter;\n" +
-                "\n" +
-                "    @Inject\n" +
-                "    private FilexApplyRequestConverter filexApplyRequestConverter;\n" +
-                "\n" +
-                "    @Inject\n" +
-                "    private UserInfoService userInfoService;\n" +
-                "\n" +
-                "    @Inject\n" +
-                "    private CheckDataService checkDataService;\n" +
-                "    @Inject\n" +
-                "    private ItextService itextService;\n" +
-                "    @Inject\n" +
-                "    private UploadService uploadService;\n" +
-                "\n" +
-                "    /**\n" +
-                "     * 取消重点标记\n" +
-                "     * @param applyId 申请id\n" +
-                "     * @return 描述\n" +
-                "     */\n" +
                 "    @ResponseBody\n" +
-                "    @RequestMapping(value = \"/filex/green/channel/delete\", method = RequestMethod.GET)\n" +
-                "    public String deleteGreenChannel(@RequestParam String applyId) {\n" +
-                "        applyFilexApi.deleteGreenChannel(applyId, userInfoService.getCurrentUser().getId());\n" +
-                "        return \"取消重点标记成功\";\n" +
+                "    @RequestMapping(value = \"/dictItem/list\", method = RequestMethod.POST)\n" +
+                "    ObjectResponse<PageDataView<DictItemView>> queryDictItemList(@RequestBody QueryDictItemRequestParams request) {\n" +
+                "        ResponseObject<PageView<QueryDictItemListResponseView>> responseView;\n" +
+                "        responseView = dictItemApi.queryDictItemList(new RequestObject<>(request));\n" +
+                "        List<DictItemView> list = new ArrayList<>();\n" +
+                "        com.sunsharing.xshare.management.common.message.view.PageView pageView = new com.sunsharing.xshare.management.common.message.view\n" +
+                "            .PageView();\n" +
+                "        for (int i = 0; i < responseView.getResponseData().getEntityList().size(); i++) {\n" +
+                "            list.add(DictItemConverter.toDictItemView(responseView.getResponseData().getEntityList().get(\n" +
+                "                i)));\n" +
+                "        }\n" +
+                "        pageView.setPageNumber(responseView.getResponseData().getCurrentPage());\n" +
+                "        pageView.setPageSize(responseView.getResponseData().getPageSize());\n" +
+                "        pageView.setTotalCount((long) Math.toIntExact(responseView.getResponseData().getTotal()));\n" +
+                "        PageDataView<DictItemView> pageDataView = new PageDataView<>();\n" +
+                "        pageDataView.setPageView(pageView);\n" +
+                "        pageDataView.setDataViews(list);\n" +
+                "        return new ObjectResponse(\"1200\", \"\", pageDataView);\n" +
+                "    }\n" +
+                "\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"user/list/applicationUser/{userId}\", method = RequestMethod.GET)\n" +
+                "    public ListResponse<UserApplicationView> queryUserApplicationList(@PathVariable String userId) {\n" +
+                "        ListResponse<UserApplicationView> views = new ListResponse<>();\n" +
+                "        List<UserApplicationView> result = new ArrayList<>();\n" +
+                "        List<QueryUserApplicationListResponseView> list = userApi.queryUserApplicationList(new RequestObject<>(userId)).getResponseDatas();\n" +
+                "        for (QueryUserApplicationListResponseView object : list) {\n" +
+                "            result.add(UserConverter.toUserApplicationView(object));\n" +
+                "        }\n" +
+                "        views.setDataViews(result);\n" +
+                "        return views;\n" +
                 "    }\n" +
                 "    \n" +
-                "    @ResponseBody\n" +
-                "    @RequestMapping(value = \"/resource/delete\", method = RequestMethod.POST)\n" +
-                "    public String deleteResource(@RequestBody List<String> resourceId) {\n" +
-                "        return registerDatabaseApi.deleteResource(resourceId);\n" +
+                "    @Override\n" +
+                "    public void upload(@RequestParam(name = \"file\") MultipartFile multipartFile) {\n" +
+                "        System.out.println(\"ss\");\n" +
                 "    }\n" +
-                "}";
+                "\n" +
+                "    @Override\n" +
+                "    @ResponseBody\n" +
+                "    @RequestMapping(value = \"/file/content/view\", method = RequestMethod.GET)\n" +
+                "    public String getFileContent(@RequestParam(name = \"fileId\") String fileId, @RequestParam(\"fileType\") String fileType) {\n" +
+                "        return uploadService.getFileContent(fileId, fileType);\n" +
+                "    }\n" +
+                "\n" +
+                "    @Override\n" +
+                "    @ResponseBody\n" +
+                "    public ResourceDocumentFileView getFile(@RequestParam(name = \"fileId\") String fileId, @RequestParam(\"fileType\") String fileType) {\n" +
+                "        return uploadService.getFile(fileId, fileType);\n" +
+                "    }\n" +
+                "}\n";
         CommonTokenStream commonTokenStream = getTokenStream(code);
         CodeInfo codeInfo = convertClassAnnotation(commonTokenStream, "test-server");
         System.out.println(codeInfo.getCode());
@@ -514,6 +551,9 @@ public class ConvertAnnotationMain {
                                                          String clientServerName) throws IOException {
         for (Path sourcePath : pathList) {
             String targetPathStr = targetFolder + sourcePath.toString().replace(sourceFolder, "");
+            if (targetPathStr.contains("xhsare")) {
+                targetPathStr = targetPathStr.replace("xhsare", "xshare");
+            }
             Path targetPath = Paths.get(targetPathStr);
             if (excludeFileName.contains(targetPath.getFileName().toString())) {
                 System.out.println("exclude path: " + targetPathStr);
@@ -548,6 +588,9 @@ public class ConvertAnnotationMain {
                                                          String clientServerName, boolean isNonStandardMsg) throws IOException {
         for (Path sourcePath : pathList) {
             String targetPathStr = targetFolder + sourcePath.toString().replace(sourceFolder, "");
+            if (targetPathStr.contains("xhsare")) {
+                targetPathStr = targetPathStr.replace("xhsare", "xshare");
+            }
             Path targetPath = Paths.get(targetPathStr);
             if (excludeFileName.contains(targetPath.getFileName().toString())) {
                 System.out.println("exclude path: " + targetPathStr);
