@@ -407,6 +407,7 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
                 String javaTypeStr = ctx.annotation().getText();
                 javaTypeStr = StringUtils.deleteWhitespace(javaTypeStr);
                 javaTypeStr = javaTypeStr.replace("value=", "");
+                //这里有一个BUG，类型为Boolean类型的，同时有@XmlJavaTypeAdapter(BooleanAdapter2.class)这个标签，会出现不处理的情况，这样转换是有问题的
                 if (adapterMap.containsKey(javaTypeStr) && !this.isBooleanType) {
                     String value = adapterMap.get(javaTypeStr);
                     rewriter.replace(ctx.annotation().start, ctx.annotation().stop, value);
@@ -520,7 +521,7 @@ public class ConvertAnnotationListener extends JavaParserBaseListener {
                             if (Objects.nonNull(methodDeclarationContext.typeTypeOrVoid().typeType())
                                     && Objects.nonNull(methodDeclarationContext.typeTypeOrVoid().typeType().classOrInterfaceType())) {
                                 String returnType = methodDeclarationContext.typeTypeOrVoid().typeType().classOrInterfaceType().getText();
-                                if ("String".equals(returnType)) {
+                                if ("String".equals(returnType) && this.isHasController) {
                                     return;
                                 }
                             }
