@@ -17,5 +17,6 @@ public class InsertSerialIdListener extends JavaParserBaseListener {
     public void enterClassBody(JavaParser.ClassBodyContext ctx) {
         String field = "\n\tpublic static final long serialVersionUID = 1L;";
         rewriter.insertAfter(ctx.start, field);
+        System.out.println(ctx.getStart().getLine() + " : " + ctx.getStart().getCharPositionInLine());
     }
 }
