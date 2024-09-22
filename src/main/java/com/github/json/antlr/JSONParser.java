@@ -1,4 +1,4 @@
-// Generated from E:/Code/IdeaProject/antlr-action/src/main/resources/json\JSON.g4 by ANTLR 4.9.1
+// Generated from E:/Code/IdeaProject/antlr-action/src/main/resources/json/JSON.g4 by ANTLR 4.13.1
 package com.github.json.antlr;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
 
-@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
+@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
 public class JSONParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.9.1", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.13.1", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -92,14 +92,24 @@ public class JSONParser extends Parser {
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class JsonContext extends ParserRuleContext {
 		public ValueContext value() {
 			return getRuleContext(ValueContext.class,0);
 		}
+		public TerminalNode EOF() { return getToken(JSONParser.EOF, 0); }
 		public JsonContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_json; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JSONListener ) ((JSONListener)listener).enterJson(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JSONListener ) ((JSONListener)listener).exitJson(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof JSONVisitor ) return ((JSONVisitor<? extends T>)visitor).visitJson(this);
@@ -115,6 +125,8 @@ public class JSONParser extends Parser {
 			{
 			setState(10);
 			value();
+			setState(11);
+			match(EOF);
 			}
 		}
 		catch (RecognitionException re) {
@@ -128,6 +140,7 @@ public class JSONParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ObjContext extends ParserRuleContext {
 		public List<PairContext> pair() {
 			return getRuleContexts(PairContext.class);
@@ -140,6 +153,14 @@ public class JSONParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_obj; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JSONListener ) ((JSONListener)listener).enterObj(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JSONListener ) ((JSONListener)listener).exitObj(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof JSONVisitor ) return ((JSONVisitor<? extends T>)visitor).visitObj(this);
 			else return visitor.visitChildren(this);
@@ -151,42 +172,42 @@ public class JSONParser extends Parser {
 		enterRule(_localctx, 2, RULE_obj);
 		int _la;
 		try {
-			setState(25);
+			setState(26);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,1,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(12);
-				match(T__0);
 				setState(13);
+				match(T__0);
+				setState(14);
 				pair();
-				setState(18);
+				setState(19);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while (_la==T__1) {
 					{
 					{
-					setState(14);
-					match(T__1);
 					setState(15);
+					match(T__1);
+					setState(16);
 					pair();
 					}
 					}
-					setState(20);
+					setState(21);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-				setState(21);
+				setState(22);
 				match(T__2);
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(23);
-				match(T__0);
 				setState(24);
+				match(T__0);
+				setState(25);
 				match(T__2);
 				}
 				break;
@@ -203,6 +224,7 @@ public class JSONParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class PairContext extends ParserRuleContext {
 		public TerminalNode STRING() { return getToken(JSONParser.STRING, 0); }
 		public ValueContext value() {
@@ -212,6 +234,14 @@ public class JSONParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_pair; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JSONListener ) ((JSONListener)listener).enterPair(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JSONListener ) ((JSONListener)listener).exitPair(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof JSONVisitor ) return ((JSONVisitor<? extends T>)visitor).visitPair(this);
@@ -225,11 +255,11 @@ public class JSONParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(27);
-			match(STRING);
 			setState(28);
-			match(T__3);
+			match(STRING);
 			setState(29);
+			match(T__3);
+			setState(30);
 			value();
 			}
 		}
@@ -244,6 +274,7 @@ public class JSONParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ArrContext extends ParserRuleContext {
 		public List<ValueContext> value() {
 			return getRuleContexts(ValueContext.class);
@@ -256,6 +287,14 @@ public class JSONParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_arr; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JSONListener ) ((JSONListener)listener).enterArr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JSONListener ) ((JSONListener)listener).exitArr(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof JSONVisitor ) return ((JSONVisitor<? extends T>)visitor).visitArr(this);
 			else return visitor.visitChildren(this);
@@ -267,42 +306,42 @@ public class JSONParser extends Parser {
 		enterRule(_localctx, 6, RULE_arr);
 		int _la;
 		try {
-			setState(44);
+			setState(45);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,3,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(31);
-				match(T__4);
 				setState(32);
+				match(T__4);
+				setState(33);
 				value();
-				setState(37);
+				setState(38);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				while (_la==T__1) {
 					{
 					{
-					setState(33);
-					match(T__1);
 					setState(34);
+					match(T__1);
+					setState(35);
 					value();
 					}
 					}
-					setState(39);
+					setState(40);
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				}
-				setState(40);
+				setState(41);
 				match(T__5);
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(42);
-				match(T__4);
 				setState(43);
+				match(T__4);
+				setState(44);
 				match(T__5);
 				}
 				break;
@@ -319,6 +358,7 @@ public class JSONParser extends Parser {
 		return _localctx;
 	}
 
+	@SuppressWarnings("CheckReturnValue")
 	public static class ValueContext extends ParserRuleContext {
 		public TerminalNode STRING() { return getToken(JSONParser.STRING, 0); }
 		public TerminalNode NUMBER() { return getToken(JSONParser.NUMBER, 0); }
@@ -333,6 +373,14 @@ public class JSONParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_value; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof JSONListener ) ((JSONListener)listener).enterValue(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof JSONListener ) ((JSONListener)listener).exitValue(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof JSONVisitor ) return ((JSONVisitor<? extends T>)visitor).visitValue(this);
 			else return visitor.visitChildren(this);
@@ -343,55 +391,55 @@ public class JSONParser extends Parser {
 		ValueContext _localctx = new ValueContext(_ctx, getState());
 		enterRule(_localctx, 8, RULE_value);
 		try {
-			setState(53);
+			setState(54);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case STRING:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(46);
+				setState(47);
 				match(STRING);
 				}
 				break;
 			case NUMBER:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(47);
+				setState(48);
 				match(NUMBER);
 				}
 				break;
 			case T__0:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(48);
+				setState(49);
 				obj();
 				}
 				break;
 			case T__4:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(49);
+				setState(50);
 				arr();
 				}
 				break;
 			case T__6:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(50);
+				setState(51);
 				match(T__6);
 				}
 				break;
 			case T__7:
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(51);
+				setState(52);
 				match(T__7);
 				}
 				break;
 			case T__8:
 				enterOuterAlt(_localctx, 7);
 				{
-				setState(52);
+				setState(53);
 				match(T__8);
 				}
 				break;
@@ -411,22 +459,42 @@ public class JSONParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\16:\4\2\t\2\4\3\t"+
-		"\3\4\4\t\4\4\5\t\5\4\6\t\6\3\2\3\2\3\3\3\3\3\3\3\3\7\3\23\n\3\f\3\16\3"+
-		"\26\13\3\3\3\3\3\3\3\3\3\5\3\34\n\3\3\4\3\4\3\4\3\4\3\5\3\5\3\5\3\5\7"+
-		"\5&\n\5\f\5\16\5)\13\5\3\5\3\5\3\5\3\5\5\5/\n\5\3\6\3\6\3\6\3\6\3\6\3"+
-		"\6\3\6\5\68\n\6\3\6\2\2\7\2\4\6\b\n\2\2\2>\2\f\3\2\2\2\4\33\3\2\2\2\6"+
-		"\35\3\2\2\2\b.\3\2\2\2\n\67\3\2\2\2\f\r\5\n\6\2\r\3\3\2\2\2\16\17\7\3"+
-		"\2\2\17\24\5\6\4\2\20\21\7\4\2\2\21\23\5\6\4\2\22\20\3\2\2\2\23\26\3\2"+
-		"\2\2\24\22\3\2\2\2\24\25\3\2\2\2\25\27\3\2\2\2\26\24\3\2\2\2\27\30\7\5"+
-		"\2\2\30\34\3\2\2\2\31\32\7\3\2\2\32\34\7\5\2\2\33\16\3\2\2\2\33\31\3\2"+
-		"\2\2\34\5\3\2\2\2\35\36\7\f\2\2\36\37\7\6\2\2\37 \5\n\6\2 \7\3\2\2\2!"+
-		"\"\7\7\2\2\"\'\5\n\6\2#$\7\4\2\2$&\5\n\6\2%#\3\2\2\2&)\3\2\2\2\'%\3\2"+
-		"\2\2\'(\3\2\2\2(*\3\2\2\2)\'\3\2\2\2*+\7\b\2\2+/\3\2\2\2,-\7\7\2\2-/\7"+
-		"\b\2\2.!\3\2\2\2.,\3\2\2\2/\t\3\2\2\2\608\7\f\2\2\618\7\r\2\2\628\5\4"+
-		"\3\2\638\5\b\5\2\648\7\t\2\2\658\7\n\2\2\668\7\13\2\2\67\60\3\2\2\2\67"+
-		"\61\3\2\2\2\67\62\3\2\2\2\67\63\3\2\2\2\67\64\3\2\2\2\67\65\3\2\2\2\67"+
-		"\66\3\2\2\28\13\3\2\2\2\7\24\33\'.\67";
+		"\u0004\u0001\f9\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
+		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004\u0001"+
+		"\u0000\u0001\u0000\u0001\u0000\u0001\u0001\u0001\u0001\u0001\u0001\u0001"+
+		"\u0001\u0005\u0001\u0012\b\u0001\n\u0001\f\u0001\u0015\t\u0001\u0001\u0001"+
+		"\u0001\u0001\u0001\u0001\u0001\u0001\u0003\u0001\u001b\b\u0001\u0001\u0002"+
+		"\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0003\u0001\u0003\u0001\u0003"+
+		"\u0001\u0003\u0005\u0003%\b\u0003\n\u0003\f\u0003(\t\u0003\u0001\u0003"+
+		"\u0001\u0003\u0001\u0003\u0001\u0003\u0003\u0003.\b\u0003\u0001\u0004"+
+		"\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004"+
+		"\u0003\u00047\b\u0004\u0001\u0004\u0000\u0000\u0005\u0000\u0002\u0004"+
+		"\u0006\b\u0000\u0000=\u0000\n\u0001\u0000\u0000\u0000\u0002\u001a\u0001"+
+		"\u0000\u0000\u0000\u0004\u001c\u0001\u0000\u0000\u0000\u0006-\u0001\u0000"+
+		"\u0000\u0000\b6\u0001\u0000\u0000\u0000\n\u000b\u0003\b\u0004\u0000\u000b"+
+		"\f\u0005\u0000\u0000\u0001\f\u0001\u0001\u0000\u0000\u0000\r\u000e\u0005"+
+		"\u0001\u0000\u0000\u000e\u0013\u0003\u0004\u0002\u0000\u000f\u0010\u0005"+
+		"\u0002\u0000\u0000\u0010\u0012\u0003\u0004\u0002\u0000\u0011\u000f\u0001"+
+		"\u0000\u0000\u0000\u0012\u0015\u0001\u0000\u0000\u0000\u0013\u0011\u0001"+
+		"\u0000\u0000\u0000\u0013\u0014\u0001\u0000\u0000\u0000\u0014\u0016\u0001"+
+		"\u0000\u0000\u0000\u0015\u0013\u0001\u0000\u0000\u0000\u0016\u0017\u0005"+
+		"\u0003\u0000\u0000\u0017\u001b\u0001\u0000\u0000\u0000\u0018\u0019\u0005"+
+		"\u0001\u0000\u0000\u0019\u001b\u0005\u0003\u0000\u0000\u001a\r\u0001\u0000"+
+		"\u0000\u0000\u001a\u0018\u0001\u0000\u0000\u0000\u001b\u0003\u0001\u0000"+
+		"\u0000\u0000\u001c\u001d\u0005\n\u0000\u0000\u001d\u001e\u0005\u0004\u0000"+
+		"\u0000\u001e\u001f\u0003\b\u0004\u0000\u001f\u0005\u0001\u0000\u0000\u0000"+
+		" !\u0005\u0005\u0000\u0000!&\u0003\b\u0004\u0000\"#\u0005\u0002\u0000"+
+		"\u0000#%\u0003\b\u0004\u0000$\"\u0001\u0000\u0000\u0000%(\u0001\u0000"+
+		"\u0000\u0000&$\u0001\u0000\u0000\u0000&\'\u0001\u0000\u0000\u0000\')\u0001"+
+		"\u0000\u0000\u0000(&\u0001\u0000\u0000\u0000)*\u0005\u0006\u0000\u0000"+
+		"*.\u0001\u0000\u0000\u0000+,\u0005\u0005\u0000\u0000,.\u0005\u0006\u0000"+
+		"\u0000- \u0001\u0000\u0000\u0000-+\u0001\u0000\u0000\u0000.\u0007\u0001"+
+		"\u0000\u0000\u0000/7\u0005\n\u0000\u000007\u0005\u000b\u0000\u000017\u0003"+
+		"\u0002\u0001\u000027\u0003\u0006\u0003\u000037\u0005\u0007\u0000\u0000"+
+		"47\u0005\b\u0000\u000057\u0005\t\u0000\u00006/\u0001\u0000\u0000\u0000"+
+		"60\u0001\u0000\u0000\u000061\u0001\u0000\u0000\u000062\u0001\u0000\u0000"+
+		"\u000063\u0001\u0000\u0000\u000064\u0001\u0000\u0000\u000065\u0001\u0000"+
+		"\u0000\u00007\t\u0001\u0000\u0000\u0000\u0005\u0013\u001a&-6";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

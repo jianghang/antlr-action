@@ -1,4 +1,4 @@
-// Generated from E:/Code/IdeaProject/antlr-action/src/main/resources/json\JSON.g4 by ANTLR 4.9.1
+// Generated from E:/Code/IdeaProject/antlr-action/src/main/resources/json/JSON.g4 by ANTLR 4.13.1
 package com.github.json.antlr;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
